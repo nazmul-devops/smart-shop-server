@@ -10,14 +10,6 @@ const port = process.env.PORT || 5001;
 
 app.use(cors());
 
-// const corsConfig = {
-//     origin: '',
-//     credentials: true,
-//     methods: ['GET', 'POST', 'PUT', 'DELETE']
-// }
-// app.use(cors(corsConfig))
-// app.options("", cors(corsConfig))
-
 app.use(express.json());
 
 // Mongo DB Connection
@@ -72,36 +64,37 @@ async function run() {
             }
         });
 
-        // app.put('/brands/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     console.log('Frontend requested to update user with ID:', id);
-        //     const coffee = req.body;
-        //     console.log(id, coffee);
-        //     const filter = { _id: new ObjectId(id) };
-        //     const updatedCoffee = {
-        //         $set: {
-        //             name: coffee.name,
-        //             supplier: coffee.supplier,
-        //             category: coffee.category,
-        //             price: coffee.price,
-        //             taste: coffee.taste,
-        //             details: coffee.details,
-        //             photo: coffee.photo,
-        //         }
-        //     }
-        //     const options = { upsert: true };
-        //     const result = await coffeeCollection.updateOne(filter, updatedCoffee, options);
-        //     res.json({ message: 'User updated successfully' });
-        // })
+        // PUT API for update product
+        app.put('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log('Client requested to update product with ID:', id);
+            const product = req.body;
+            console.log(id, product);
+            const filter = { _id: new ObjectId(id) };
+            const updatedProduct = {
+                $set: {
+                    pname: product.pname,
+                    bname: product.bname,
+                    selectedType: product.selectedType,
+                    price: product.price,
+                    image: product.image,
+                    des: product.des,
+                    rating: product.rating,
+                }
+            }
+            const options = { upsert: true };
+            const result = await productCollection.updateOne(filter, updatedProduct, options);
+            res.json({ message: 'User updated successfully' });
+        })
 
-        // app.delete('/brands/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     console.log('Fronted requested: please delete', id, 'this user from mongodb');
-        //     const query = { _id: new ObjectId(id) };
-        //     const result = await coffeeCollection.deleteOne(query);
-        //     console.log('Requested user', id, 'deleted successfully');
-        //     res.send(result);
-        // })
+        app.delete('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log('Fronted requested: please delete', id, 'this user from mongodb');
+            const query = { _id: new ObjectId(id) };
+            const result = await coffeeCollection.deleteOne(query);
+            console.log('Requested user', id, 'deleted successfully');
+            res.send(result);
+        })
 
         // User Management related apis
 

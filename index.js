@@ -23,7 +23,7 @@ app.use(express.json());
 // Mongo DB Connection
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@mongodbcloud.ja2jrii.mongodb.net/?retryWrites=true&w=majority`;
-// const uri = "mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.0.1";
+
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
     serverApi: {
@@ -38,31 +38,39 @@ async function run() {
         await client.connect();
 
         const database = client.db("brandShopDB");
-        const brandCollection = database.collection("brands");
         const userCollection = database.collection("users");
         const productCollection = database.collection("products");
 
-        app.get('/brands', async (req, res) => {
-            const cursor = brandCollection.find()
+        // Product related APIs
+
+        // GET API for all products 
+        app.get('/products', async (req, res) => {
+            const cursor = productCollection.find()
             const result = await cursor.toArray()
             console.log(result);
             res.send(result);
         })
 
-        // app.get('/brands/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const query = { _id: new ObjectId(id) };
-        //     const coffee = await coffeeCollection.findOne(query);
-        //     res.send(coffee);
+        // GET API for single product
+        app.get('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const product = await productCollection.findOne(query);
+            res.send(product);
+        })
 
-        // })
-
-        // app.post('/brands', async (req, res) => {
-        //     console.log(req.body);
-        //     const newCoffee = req.body;
-        //     const result = await coffeeCollection.insertOne(newCoffee);
-        //     res.send(result);
-        // })
+        // POST API for add product
+        app.post('/products', async (req, res) => {
+            const product = req.body;
+            console.log(product);
+            try {
+                const result = await productCollection.insertOne(product);
+                res.json({ message: "Product added successfully", result });
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ error: "An error occurred while adding the product." });
+            }
+        });
 
         // app.put('/brands/:id', async (req, res) => {
         //     const id = req.params.id;
@@ -94,6 +102,38 @@ async function run() {
         //     console.log('Requested user', id, 'deleted successfully');
         //     res.send(result);
         // })
+
+        // User Management related apis
+
+        // GET API for all users
+        app.get('/users', async (req, res) => {
+            const cursor = userCollection.find()
+            const result = await cursor.toArray()
+            console.log(result);
+            res.send(result);
+        });
+
+        // GET API for single User
+        app.get('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const user = await userCollection.findOne(query);
+            res.send(user);
+        })
+
+        // POST API
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            console.log(user);
+            try {
+                const result = await userCollection.insertOne(user);
+                res.json({ message: "User added successfully", result });
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ error: "An error occurred while adding the user." });
+            }
+        });
+
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged!!! You are successfully connected to MongoDB!");

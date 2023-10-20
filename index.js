@@ -4,7 +4,7 @@ const path = require('path');
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 
 // middlewares
 
@@ -53,16 +53,13 @@ async function run() {
         })
 
         // GET API for selected brand products
-        app.get('/products/:bname', async (req, res) => {
+        app.get('/products-by-brand/:bname', async (req, res) => {
             const bname = req.params.bname;
             console.log('Brand Name:', bname);
-            try {
-                const selectedBrandProducts = await productCollection.find({ bname: bname }).toArray();
-                res.send(selectedBrandProducts);
-            } catch (err) {
-                console.error(err);
-                res.status(500).json({ error: 'An error occurred while fetching products.' });
-            }
+            const query = { bname: bname };
+            const selectedBrandProducts = productCollection.find(query);
+            const result = await selectedBrandProducts.toArray()
+            res.send(result);
         });
 
 
@@ -105,40 +102,34 @@ async function run() {
         // Product Cart Related APIs
 
         // API to add a product to the cart
-        app.post('/products/add-to-cart', async (req, res) => {
+        app.post('/add-to-cart', async (req, res) => {
             const product = req.body;
             console.log(product);
-            try {
-                const result = await productCartCollection.insertOne(product);
-                res.json({ message: "Product added to cart successfully", result });
-            } catch (error) {
-                console.error(error);
-                res.status(500).json({ error: "An error occurred while adding the product." });
-            }
+            const result = await productCartCollection.insertOne(product);
+            console.log(result)
+            res.json({ message: "Product added to cart successfully", result });
         });
 
-        // API to get the user's cart
-        app.get('/api/get-cart', async (req, res) => {
-            try {
-                const cartItems = await CartItem.find();
-                res.json(cartItems);
-            } catch (error) {
-                console.error(error);
-                res.status(500).json({ error: 'An error occurred while fetching the cart.' });
-            }
-        });
+
+        // // API to get the user's cart
+        // app.get('/products/cart', async (req, res) => {
+        //     const cursor = productCartCollection.find()
+        //     const result = await cursor.toArray()
+        //     console.log(result);
+        //     res.send(result);
+        // });
 
         // API to remove a product from the cart
-        app.delete('/api/remove-from-cart/:id', async (req, res) => {
-            const itemId = req.params.id;
-            try {
-                await CartItem.findByIdAndRemove(itemId);
-                res.json({ message: 'Product removed from cart.' });
-            } catch (error) {
-                console.error(error);
-                res.status(500).json({ error: 'An error occurred while removing the product from the cart.' });
-            }
-        });
+        // app.delete('/api/remove-from-cart/:id', async (req, res) => {
+        //     const itemId = req.params.id;
+        //     try {
+        //         await CartItem.findByIdAndRemove(itemId);
+        //         res.json({ message: 'Product removed from cart.' });
+        //     } catch (error) {
+        //         console.error(error);
+        //         res.status(500).json({ error: 'An error occurred while removing the product from the cart.' });
+        //     }
+        // });
 
 
         app.delete('/products/:id', async (req, res) => {

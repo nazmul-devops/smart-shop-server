@@ -103,43 +103,57 @@ async function run() {
 
         // API to add a product to the cart
         app.post('/add-to-cart', async (req, res) => {
-            const product = req.body;
-            console.log(product);
-            const result = await productCartCollection.insertOne(product);
-            console.log(result)
-            res.json({ message: "Product added to cart successfully", result });
+            const { product, userEmail } = req.body;
+            const existingProduct = await productCartCollection.findOne({
+                product: product,
+                userEmail: userEmail,
+            });
+
+            if (existingProduct) {
+                return res.json({ message: "Product already in the cart" });
+            } else {
+                const result = await productCartCollection.insertOne({ product, userEmail });
+                return res.json({ message: "Product added to cart successfully", result });
+            }
         });
 
 
-        // // API to get the user's cart
-        // app.get('/products/cart', async (req, res) => {
-        //     const cursor = productCartCollection.find()
-        //     const result = await cursor.toArray()
-        //     console.log(result);
-        //     res.send(result);
-        // });
+        // API to get the user's cart
+        app.get('/get-cart/:userEmail', async (req, res) => {
+            const userEmail = req.params.userEmail;
+            const cursor = productCartCollection.find({ userEmail: userEmail });
+            const result = await cursor.toArray()
+            res.send(result);
+        });
 
         // API to remove a product from the cart
-        // app.delete('/api/remove-from-cart/:id', async (req, res) => {
-        //     const itemId = req.params.id;
-        //     try {
-        //         await CartItem.findByIdAndRemove(itemId);
-        //         res.json({ message: 'Product removed from cart.' });
-        //     } catch (error) {
-        //         console.error(error);
-        //         res.status(500).json({ error: 'An error occurred while removing the product from the cart.' });
-        //     }
-        // });
+        app.delete('/delete-cart-item/:itemId', async (req, res) => {
+            const itemId = req.params.itemId;
+            console.log(itemId)
+
+            // Use ObjectId to create a filter based on the provided itemId
+            const filter = { _id: new ObjectId(itemId) };
+
+            // Remove the item from the cart based on the filter
+            const result = await productCartCollection.deleteOne(filter);
+
+            if (result.deletedCount === 1) {
+                res.json({ message: "Item deleted successfully" });
+            } else {
+                res.status(404).json({ message: "Item not found or unable to delete" });
+            }
+        });
 
 
-        app.delete('/products/:id', async (req, res) => {
-            const id = req.params.id;
-            console.log('Fronted requested: please delete', id, 'this user from mongodb');
-            const query = { _id: new ObjectId(id) };
-            const result = await coffeeCollection.deleteOne(query);
-            console.log('Requested user', id, 'deleted successfully');
-            res.send(result);
-        })
+
+        // app.delete('/products/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     console.log('Fronted requested: please delete', id, 'this user from mongodb');
+        //     const query = { _id: new ObjectId(id) };
+        //     const result = await coffeeCollection.deleteOne(query);
+        //     console.log('Requested user', id, 'deleted successfully');
+        //     res.send(result);
+        // })
 
         // User Management related apis
 

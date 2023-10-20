@@ -4,7 +4,7 @@ const path = require('path');
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
-const port = process.env.PORT || 5001;
+const port = process.env.PORT || 5000;
 
 // middlewares
 
@@ -32,6 +32,7 @@ async function run() {
         const database = client.db("brandShopDB");
         const userCollection = database.collection("users");
         const productCollection = database.collection("products");
+        const productCartCollection = database.collection("cartProducts");
 
         // Product related APIs
 
@@ -100,6 +101,45 @@ async function run() {
             const result = await productCollection.updateOne(filter, updatedProduct, options);
             res.json({ message: 'User updated successfully' });
         })
+
+        // Product Cart Related APIs
+
+        // API to add a product to the cart
+        app.post('/products/add-to-cart', async (req, res) => {
+            const product = req.body;
+            console.log(product);
+            try {
+                const result = await productCartCollection.insertOne(product);
+                res.json({ message: "Product added to cart successfully", result });
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ error: "An error occurred while adding the product." });
+            }
+        });
+
+        // API to get the user's cart
+        app.get('/api/get-cart', async (req, res) => {
+            try {
+                const cartItems = await CartItem.find();
+                res.json(cartItems);
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ error: 'An error occurred while fetching the cart.' });
+            }
+        });
+
+        // API to remove a product from the cart
+        app.delete('/api/remove-from-cart/:id', async (req, res) => {
+            const itemId = req.params.id;
+            try {
+                await CartItem.findByIdAndRemove(itemId);
+                res.json({ message: 'Product removed from cart.' });
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ error: 'An error occurred while removing the product from the cart.' });
+            }
+        });
+
 
         app.delete('/products/:id', async (req, res) => {
             const id = req.params.id;

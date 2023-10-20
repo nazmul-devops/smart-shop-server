@@ -51,6 +51,20 @@ async function run() {
             res.send(product);
         })
 
+        // GET API for selected brand products
+        app.get('/products/:bname', async (req, res) => {
+            const bname = req.params.bname;
+            console.log('Brand Name:', bname);
+            try {
+                const selectedBrandProducts = await productCollection.find({ bname: bname }).toArray();
+                res.send(selectedBrandProducts);
+            } catch (err) {
+                console.error(err);
+                res.status(500).json({ error: 'An error occurred while fetching products.' });
+            }
+        });
+
+
         // POST API for add product
         app.post('/products', async (req, res) => {
             const product = req.body;
